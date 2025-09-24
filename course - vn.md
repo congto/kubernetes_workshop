@@ -329,7 +329,7 @@ kubectl version --client
 As the whole workshop will be using `kubectl` command a lot, it is convenient to create an alias for it. You can add the following line to your `~/.bashrc` or `~/.zshrc` file:
 
 ```bash
-nano ~/.bashrc
+vi ~/.bashrc
 ```
 
 Insert the following line at the end of the file:
