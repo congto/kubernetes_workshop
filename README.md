@@ -14,9 +14,9 @@ using Kubernetes v1.33.4
 - https://minikube.sigs.k8s.io/docs/
 - https://helm.sh/docs/
 
-## Scope:
+## Scope: Phạm vi
 
-### Introduction to Kubernetes
+### Introduction to Kubernetes - Giới thiệu về K8S
 - Introduction/Summary of Container Technologies (Docker), Basics
 - Why Kubernetes? The Need for Orchestration
 - Kubernetes architecture: master and node components
