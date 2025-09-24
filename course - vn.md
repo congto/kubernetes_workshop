@@ -352,24 +352,56 @@ This should make your life easier and your hands less tired :-)
 
 ### Cài đặt minikube
 
-Minikube is a tool that makes it easy to run Kubernetes locally. It creates a VM or runs a container on your local machine and deploys a Kubernetes cluster inside it. This is a great way to learn and experiment with Kubernetes without needing a full setup.
+Minikube là công cụ tạo cụm K8S nhanh chóng trên môi trường lab như laptop, vm ...Nó phù hợp với việc tìm hiểu/thí nghiệm về k8s. Bạn không cần phải chuẩn bị một hạ tầng nhiều máy.
 
-Before the installation of Minikube, we need to have at least one of the drivers installed https://minikube.sigs.k8s.io/docs/drivers/. One of the preferred solutions is to use Docker as a driver. If you don't have it yet, please consult the Docker installation guide for your OS: https://docs.docker.com/engine/install/
+Kỹ thuật chính là tạo cụm k8s trên các máy cần cài docker. 
 
-If you have docker installed, make sure that your user is added to the `docker` group, so you can run Docker commands without `sudo`. If you are not sure, you can run the following command:
+Các bước cài đặt minikube 
+
+Cài đặt docker .
+
+```
+sudo apt-get remove docker docker-engine docker.io containerd runc
+# Install Packages
+sudo apt-get update -y 
+sudo apt-get install ca-certificates curl gnupg lsb-release vim byobu git jq -y
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update -y
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
+# Post install permissions
+#sudo groupadd docker
+sudo usermod -aG docker $USER
+```
+
+Cấu hình repo 
+
+```
+cat <<EOF | sudo tee /etc/docker/daemon.json 
+{
+  "registry-mirrors": [
+    "https://mirror.gcr.io"
+  ]
+}
+EOF
+
+systemctl restart docker
+```
+
 
 ```bash
 sudo usermod -aG docker $USER && newgrp docker
 ```
 
-Now let's install Minikube. The following commands will download the latest version of Minikube and install it on your system:
+Cài đặt minikube. 
 
 ```bash
 curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
 sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
 ```
 
-Once installed, start the minikube with:
+Sau khi cài đặt xong thì start minikube. 
 
 ```bash 
 minikube start
