@@ -350,6 +350,8 @@ k version --client
 
 This should make your life easier and your hands less tired :-)
 
+
+
 ### Cài đặt minikube
 
 Minikube là công cụ tạo cụm K8S nhanh chóng trên môi trường lab như laptop, vm ...Nó phù hợp với việc tìm hiểu/thí nghiệm về k8s. Bạn không cần phải chuẩn bị một hạ tầng nhiều máy.
@@ -401,77 +403,194 @@ curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikub
 sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
 ```
 
-Sau khi cài đặt xong thì start minikube. 
+Kiểm tra phiên bản của Minikube
+
+```
+root@cto-docker-66-106:~# minikube version
+minikube version: v1.37.0
+commit: 65318f4cfff9c12cc87ec9eb8f4cdd57b25047f3
+
+```
+
+Sau khi cài đặt xong thì tạo cụm k8s bằng lệnh minikube. 
 
 ```bash 
-minikube start
+# Nếu đang ssh bằng root vào máy cài minikube thì dùng tùy chọn --force
+minikube start --force
 ```
 
-If everything goes well, you should see output similar to this:
+Nếu tất cả ok, bạn sẽ nhìn thấy kết quả tương tự. 
+
 ```text
-😄  minikube v1.36.0 on Ubuntu 24.04 (amd64)
-✨  Automatically selected the docker driver. Other choices: none, ssh
-📌  Using Docker driver with root privileges
-👍  Starting "minikube" primary control-plane node in "minikube" cluster
-🚜  Pulling base image v0.0.47 ...
-💾  Downloading Kubernetes v1.33.1 preload ...
-    > gcr.io/k8s-minikube/kicbase...:  502.26 MiB / 502.26 MiB  100.00% 68.97 M
-    > preloaded-images-k8s-v18-v1...:  347.04 MiB / 347.04 MiB  100.00% 38.71 M
-🔥  Creating docker container (CPUs=2, Memory=2200MB) ...
-🐳  Preparing Kubernetes v1.33.1 on Docker 28.1.1 ...
-    ▪ Generating certificates and keys ...
-    ▪ Booting up control plane ...
-    ▪ Configuring RBAC rules ...
-🔗  Configuring bridge CNI (Container Networking Interface) ...
-🔎  Verifying Kubernetes components...
-    ▪ Using image gcr.io/k8s-minikube/storage-provisioner:v5
-🌟  Enabled addons: storage-provisioner, default-storageclass
-💡  kubectl not found. If you need it, try: 'minikube kubectl -- get pods -A'
-🏄  Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
+root@cto-docker-66-106:~# minikube start --force
+* minikube v1.37.0 on Ubuntu 24.04
+! minikube skips various validations when --force is supplied; this may lead to unexpected behavior
+* Automatically selected the docker driver. Other choices: none, ssh
+* The "docker" driver should not be used with root privileges. If you wish to continue as root, use --force.
+* If you are running minikube within a VM, consider using --driver=none:
+*   https://minikube.sigs.k8s.io/docs/reference/drivers/none/
+* Using Docker driver with root privileges
+* Starting "minikube" primary control-plane node in "minikube" cluster
+* Pulling base image v0.0.48 ...
+* Downloading Kubernetes v1.34.0 preload ...
+    > preloaded-images-k8s-v18-v1...:  337.07 MiB / 337.07 MiB  100.00% 8.63 Mi
+    > gcr.io/k8s-minikube/kicbase...:  488.51 MiB / 488.52 MiB  100.00% 7.53 Mi
+
+
+* Creating docker container (CPUs=2, Memory=3900MB) ...
+* Preparing Kubernetes v1.34.0 on Docker 28.4.0 ...
+* Configuring bridge CNI (Container Networking Interface) ...
+* Verifying Kubernetes components...
+  - Using image gcr.io/k8s-minikube/storage-provisioner:v5
+* Enabled addons: storage-provisioner, default-storageclass
+* Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
 ```
 
-To test that everything is working correctly, you can run:
+Khi mọi thứ ok, bạn có thể chạy lệnh dưới để kiểm tra. 
 
 ```bash
 minikube kubectl -- get po -A
 ```
-or if you have already installed `kubectl` you can run:
+
+hoặc nếu đã cài kubectl thì có thể dùng lệnh `kubectl get pod -A` hoặc `kubectl get nodes`
 
 ```bash
-kubectl get po -A
-```
-This should show you the pods running in the `kube-system` namespace, which are the components of the Kubernetes cluster.
+root@cto-docker-66-106:~# kubectl get pod -A
+NAMESPACE     NAME                               READY   STATUS    RESTARTS        AGE
+kube-system   coredns-66bc5c9577-p6xmt           1/1     Running   0               5m5s
+kube-system   etcd-minikube                      1/1     Running   0               5m15s
+kube-system   kube-apiserver-minikube            1/1     Running   0               5m10s
+kube-system   kube-controller-manager-minikube   1/1     Running   0               5m10s
+kube-system   kube-proxy-nznhp                   1/1     Running   0               5m5s
+kube-system   kube-scheduler-minikube            1/1     Running   0               5m10s
+kube-system   storage-provisioner                1/1     Running   1 (4m31s ago)   5m6s
 
-To clean everything up, you can stop and delete the Minikube cluster with:
+root@cto-docker-66-106:~# k get nodes
+NAME       STATUS   ROLES           AGE     VERSION
+minikube   Ready    control-plane   5m22s   v1.34.0
+
+```
+Kết quả trả về sẽ là các pod nằm trong namespace kube-system. 
+
+Bản chất minikube dùng docker để tạo cụm k8s, bạn có thể kiểm tra images mà docker dùng hoặc container tương ứng bằng các lệnh 
+
+```
+root@cto-docker-66-106:~# docker images
+REPOSITORY                    TAG       IMAGE ID       CREATED       SIZE
+gcr.io/k8s-minikube/kicbase   v0.0.48   c6b5532e987b   2 weeks ago   1.31GB
+
+root@cto-docker-66-106:~# docker ps
+CONTAINER ID   IMAGE                                 COMMAND                  CREATED          STATUS          PORTS                                                                                                                                  NAMES
+0c6d0d52adf8   gcr.io/k8s-minikube/kicbase:v0.0.48   "/usr/local/bin/entr…"   10 minutes ago   Up 10 minutes   127.0.0.1:32768->22/tcp, 127.0.0.1:32769->2376/tcp, 127.0.0.1:32770->5000/tcp, 127.0.0.1:32771->8443/tcp, 127.0.0.1:32772->32443/tcp   minikube
+root@cto-docker-66-106:~#
+```
+
+Để xóa cluster k8s, bạn dùng lệnh `minikube delete --all` 
 
 ```bash
-minikube delete --all
+root@cto-docker-66-106:~# minikube delete --all
+* Deleting "minikube" in docker ...
+* Removing /root/.minikube/machines/minikube ...
+* Removed all traces of the "minikube" cluster.
+* Successfully deleted all profiles
 ```
 
-You can manage the minikube cluster further, but for that, please refer to the [Minikube documentation](https://minikube.sigs.k8s.io/docs) as it is out of the scope of this workshop.
+Ngoài cách dùng minikube để thực hành với k8s, bạn hoàn toàn có thể dùng k3s hoặc kubeadm. 
 
-We will use Minikube for the rest of the workshop, but you can also use other methods to install Kubernetes, such as `kubeadm`, `k3s`, or managed Kubernetes services like AWS EKS, GKE, or Azure AKS. The concepts and commands will be similar, but the installation process may vary.
-
-If you continue with minikube, launch a new cluster with the following command:
+Nếu bạn muốn tiếp tục dùng minikube, bạn sẽ thực hiện với lệnh dưới để có một cluster đầy đủ các node. 
 
 ```bash
-minikube start --nodes=3 --cni=cilium
+minikube start --nodes=3 --cni=cilium --force
 ```
 
-Additionally, run this command, we will explain it later:
+Kết quả 
+```
+root@cto-docker-66-106:~# minikube start --nodes=3 --cni=cilium --force
+* minikube v1.37.0 on Ubuntu 24.04
+! minikube skips various validations when --force is supplied; this may lead to unexpected behavior
+* Automatically selected the docker driver. Other choices: none, ssh
+* The "docker" driver should not be used with root privileges. If you wish to continue as root, use --force.
+* If you are running minikube within a VM, consider using --driver=none:
+*   https://minikube.sigs.k8s.io/docs/reference/drivers/none/
+* Using Docker driver with root privileges
+* Starting "minikube" primary control-plane node in "minikube" cluster
+* Pulling base image v0.0.48 ...
+* Creating docker container (CPUs=2, Memory=3072MB) ...
+* Preparing Kubernetes v1.34.0 on Docker 28.4.0 ...
+* Configuring Cilium (Container Networking Interface) ...
+* Verifying Kubernetes components...
+  - Using image gcr.io/k8s-minikube/storage-provisioner:v5
+* Enabled addons: storage-provisioner, default-storageclass
+
+* Starting "minikube-m02" worker node in "minikube" cluster
+* Pulling base image v0.0.48 ...
+* Creating docker container (CPUs=2, Memory=3072MB) ...
+* Found network options:
+  - NO_PROXY=192.168.49.2
+* Preparing Kubernetes v1.34.0 on Docker 28.4.0 ...
+  - env NO_PROXY=192.168.49.2
+* Verifying Kubernetes components...
+
+* Starting "minikube-m03" worker node in "minikube" cluster
+* Pulling base image v0.0.48 ...
+* Creating docker container (CPUs=2, Memory=3072MB) ...
+* Found network options:
+  - NO_PROXY=192.168.49.2,192.168.49.3
+* Preparing Kubernetes v1.34.0 on Docker 28.4.0 ...
+  - env NO_PROXY=192.168.49.2
+  - env NO_PROXY=192.168.49.2,192.168.49.3
+* Verifying Kubernetes components...
+* Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
+```
+
+Trong lệnh trên sẽ tạo cụm cluster có 03 node và sử dụng CIN là `cilium`
+
+
+Kiểm tra nhanh lại trạng thái cụm k8s sau khi tạo bằng lệnh `kubectl get nodes` và `kubectl get pod -A` 
+```
+root@cto-docker-66-106:~# kubectl get pod -A
+NAMESPACE     NAME                               READY   STATUS        RESTARTS        AGE
+kube-system   cilium-b7kt5                       0/1     Running       0               3m41s
+kube-system   cilium-envoy-2ndsh                 1/1     Running       0               5m29s
+kube-system   cilium-envoy-5g2qv                 0/1     Running       0               3m41s
+kube-system   cilium-envoy-rpzv2                 1/1     Running       0               2m3s
+kube-system   cilium-g62t7                       0/1     Running       0               5m29s
+kube-system   cilium-operator-86946cd79f-z226h   1/1     Running       0               5m29s
+kube-system   cilium-r8klj                       0/1     Init:0/6      0               2m3s
+kube-system   coredns-66bc5c9577-n56g4           0/1     Pending       0               3s
+kube-system   coredns-66bc5c9577-rjjrv           0/1     Terminating   6 (74s ago)     5m29s
+kube-system   etcd-minikube                      1/1     Running       0               5m39s
+kube-system   kube-apiserver-minikube            1/1     Running       0               5m33s
+kube-system   kube-controller-manager-minikube   1/1     Running       0               5m36s
+kube-system   kube-proxy-jfh9m                   1/1     Running       0               2m3s
+kube-system   kube-proxy-rbrpq                   1/1     Running       0               5m29s
+kube-system   kube-proxy-v6z29                   1/1     Running       0               3m41s
+kube-system   kube-scheduler-minikube            1/1     Running       0               5m40s
+kube-system   storage-provisioner                1/1     Running       1 (4m49s ago)   5m24s
+
+
+root@cto-docker-66-106:~# kubectl get nodes
+NAME           STATUS   ROLES           AGE     VERSION
+minikube       Ready    control-plane   5m44s   v1.34.0
+minikube-m02   Ready    <none>          3m45s   v1.34.0
+minikube-m03   Ready    <none>          2m6s    v1.34.0
+
+```
+
+Sử dụng thêm lệnh dưới, ý nghĩa là ko cho tạo các pod vào node control panel (node master). 
+
 ```bash
 kubectl taint nodes minikube node-role.kubernetes.io/control-plane:NoSchedule
 ```
 
-This starts minikube with two nodes so we can later demonstrate even some advanced features like multi-node deployments, etc.
+Tới đây đã có thể sử dụng môi trường trên để thực hành k8s. 
 
-We also set up `cilium` as a requested CNI plugin, which will be explained later in the workshop.
+### Cài đặt Helm
 
-### Install Helm
 
-Helm is a package manager for Kubernetes that helps you manage Kubernetes applications. It allows you to define, install, and upgrade complex Kubernetes applications using Helm charts.
+Helm là công cụ quản lý gói cho K8s, nó giúp bạn quản lý các ứng dụng trên K8S. Bạn có thể triển khai, nâng cấp các ứng dụng phức tạp một cách đơn giản thay vì phải thủ công qua nhiều bước khi sử dụng Helm chart. 
 
-See the instruction in official documentation: https://helm.sh/docs/intro/install/
+Cài đặt Helm bằng cách sau 
 
 ```bash
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
@@ -479,16 +598,17 @@ chmod 700 get_helm.sh
 ./get_helm.sh
 ```
 
-We will use helm later in the course.
+Tạm thời ta cứ cài đặt Helm trước, các bước sau của tài liệu sẽ sử dụng .
 
-## Get started with Kubernetes: pods, deployments, services
+## Bắt đầu tìm hiểu Kubernetes với các khái niệm: pods, deployments, services
 
 ### Pod
-Core Concept:
+Khái niệm chính: 
 
-- A Pod is the smallest deployable unit in Kubernetes.
-- It contains one or more containers (usually one primary, others are "sidecars").
+- Là đơn vị nhỏ nhất trong k8s. 
+- Chứa 1 hoặc nhiều container. 
 
+Pod là tạm thời và có thể bị loại bỏ. 
 Pods are ephemeral and disposable: they get new IPs if they restart or are re-scheduled. This is a problem Services will solve.
 
 Shared resources: Containers in a Pod share network namespace and volumes.
