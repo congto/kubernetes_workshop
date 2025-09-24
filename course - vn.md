@@ -603,20 +603,16 @@ Tạm thời ta cứ cài đặt Helm trước, các bước sau của tài li�
 ## Bắt đầu tìm hiểu Kubernetes với các khái niệm: pods, deployments, services
 
 ### Pod
-Khái niệm chính: 
+Khái niệm  & đặc điểm chính: 
 
 - Là đơn vị nhỏ nhất trong k8s. 
 - Chứa 1 hoặc nhiều container. 
+- Pod là tạm thời và có thể bị loại bỏ. Chúng sẽ nhận IP khi bị khởi động lại hoặc được lập lịch lạ. Đây sẽ là vấn đề mà `Services` trong k8s sẽ giải quyết giúp. 
+- Có đặc điểm la: Các container trong pod chia sẻ network namespace và volumes .
+- Thông thường trong thực tế, các Pod ko được tạo trực tiếp mà sẽ thông qua deployment. 
+- Pod được thiết kế để chạy duy nhất một ứng dụng, trong trường hợp cần mở rộng thì sẽ có nhiều Pod được tạo (Replication)
 
-Pod là tạm thời và có thể bị loại bỏ. 
-Pods are ephemeral and disposable: they get new IPs if they restart or are re-scheduled. This is a problem Services will solve.
-
-Shared resources: Containers in a Pod share network namespace and volumes.
-
-Usually, Pods are not created directly, but via Deployments.
-
-Pod is meant to run a single instance of an application. In the case of scaling, multiple Pods are created. (Replication)
-
+Ví dụ của một file manifest để tạo Pod. 
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -630,20 +626,18 @@ spec:
 
 ### ReplicaSet
 
-A ReplicaSet ensures that a specified number of pod replicas are running at any given time.
+- Một ReplicaSet đảm bảo số lượng pod sẽ được chạy ở bất kỳ thời điểm nào. 
+- Một ReplicaSet là lớp trìu tượng cao hơn để quản lý các Pods, chúng đảm bảo số lượng bản sao mong muốn chạy .
+- Nếu 1 pod bị lỗi, replicaset sẽ tự động tạo lại bản sao (đây là cơ chế self-healing)
+- ReplicatSet xử lý việc nhân bản và tự phục hồi nhưng không có cá đặc điểm nâng cao như upgrade hoặc Rollback. Đó là lý do mà Deployment được xây dựng dựa trên ReplicaSet 
 
-A ReplicaSet is a higher-level abstraction that manages Pods, ensuring that the desired number of replicas are running.
-
-If a Pod fails, the ReplicaSet will automatically create a new one to maintain the desired count (this is its self-healing capability).
-
-While a ReplicaSet handles replication and self-healing, it does not provide advanced deployment features like rolling updates or rollbacks. That's why Deployments are built on top of ReplicaSets.
 
 ### Deployment
-A Deployment manages a set of Pods to run an application workload, usually one that doesn't maintain state.
+- Một Deployment sẽ quản lý một tập hợp các Pod để chạy các ứng dụng. 
+- Một Deployment là lớp trìu tượng để quản lý Pod và ReplicaSet. Phân cấp sẽ là: `Deployment > ReplicaSet > Pods`
+- Mô tả trạng thái mong muốn (ví dụ số lượng bản sao, image của container) và Deployment sẽ đảm bảo trạng thái thực tế giống mới trạng thái mong muốn. 
 
-A Deployment is a higher-level abstraction that manages Pods and ReplicaSets. Hierarchy: `Deployment > ReplicaSet > Pods`
-
-Describe the desired state (e.g., number of replicas, container images, etc.) and the Deployment controller will ensure that the current state matches the desired state.
+Ví dụ của một file manifest để tạo Deployment. 
 
 ```yaml
 apiVersion: apps/v1
@@ -671,22 +665,20 @@ spec:  # ~ ReplicaSet spec
 
 ### Service
 
-Exposes an application behind a single outward-facing endpoint, even when the workload is split across multiple backends.
+- Để phơi một ứng dụng ra bên ngoài cụm K8S, giúp client có thể truy cập. 
+- Một Service cung cấp IP và DNS cố định cho tập hợp các Pod, cho phép có thể truy cập một cách nhất quán. Một service sẽ sử dụng `lables` và `selector` để lựa chọn Pod mà services điều phối lưu lượng tới chúng (tới Pod).  
+- Một Service có thể điều hướng lưu lượng tới nhiều Pod để đảm bảo các ứng dụng có độ sẵn sàng cao và mở rộng được. 
+- Nếu bạn dùng Deployment để chạy ứng dụng của bạn thì Deployment có thể tạo và xóa pod tự động. Chính vì điều này bạn sẽ không biết được IP của các Pod. Service sẽ cung cấp một endpoint ổn định để truy cập vào các pods (giống như tên miền thường cố định còn Ip có thể thay đổi).
+- Thử tưởng tượng rằng bạn có 2 pod để chạy backend và frontend cho ứng dụng của bạn. Các Pod sẽ là tạm thời, bạn cần tìm cách truy cập vào backend pod từ frontend pod mà không biết địa chỉ IP của chúng. Để làm việc này bạn sẽ sử dụng Services, cái mà sẽ cung cấp một endpoint duy nhất để có thể truy cập vào backend pod. 
 
-A Service provides a stable IP address and DNS name for a set of Pods, allowing them to be accessed consistently. A Service uses labels and selectors to select which Pods it will route traffic to.
 
-A Service can load balance traffic to multiple Pods, ensuring that the application is highly available and scalable.
+Các loại Service trong K8S  (Làm thế nào để phơi ứng dụng trong k8s ra bên ngoài cụm):
+- ClusterIP: Kiểu mặc định. Thực hiện phơi the Service ra một địa chỉ IP cùng dải với cụm K8S. Chỉ có thể truy cập từ cụm K8S.
+ - headless service if `.spec.clusterIP: "None"` 
+- NodePort: Thực hiện phơi dịch vụ với một port cố định kèm theo IP của các node. Có thể truy cập từ bên ngoài cụm với định dạng IP_NODE:PORT 
+- LoadBalancer: Thực hiện phơi dịc vụ bằng cách sử dụng các LB bên ngoài cụm K8S (Các Cloud public hay dùng kiểu này hoặc trong Onprem thì dùng LB là F5 hoặc tương tự) 
+- ExternalName: Ánh xạ Service tới một bản ghi DNS, cho phép bạn truy cấp tới dịch vụ từ bên ngoài thông qua bản ghi DNS. 
 
-If you use a Deployment to run your app, that Deployment can create and destroy Pods dynamically. Because of that, you don't know the IP addresses of the Pods in advance. A Service provides a stable endpoint to access those Pods.
-
-Imagine a situation where you have two sets of pods representing backend and frontend of your application. As pods are ephemeral, you need a way to access the backend pods from the frontend pods without knowing and managing their IP addresses. For that, you can use a Service. which will serve as a single point of access to the backend pods.
-
-Service Types (How you expose your application):
-- ClusterIP: The default. Exposes the Service on an internal IP address. Only accessible from within the cluster.
-  - headless service if `.spec.clusterIP: "None"` 
-- NodePort: Exposes the Service on a static port on each Node's IP. Accessible from outside the cluster.
-- LoadBalancer: Exposes the Service externally using a cloud provider's load balancer.
-- ExternalName: Maps the Service to a DNS name, allowing you to access an external service by name.
 
 ```yaml
 apiVersion: v1
