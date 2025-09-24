@@ -26,6 +26,8 @@ Containers are often compared to Virtual Machines (VMs), but they are fundamenta
 
 ### Demo nhanh về Docker.
 
+Cần chuẩn bị máy cài docker: Tham khảo
+
 In a short demo, we will demonstrate the preparation of a simple Docker image and running a container from it. Container will run a simple Flask web server.
 
 Have a look at files in [./examples/docker_intro/](./examples/docker_intro/), the folder contains:
@@ -230,7 +232,7 @@ Manually handling these tasks for dozens or hundreds of containers is virtually 
 
 It does not mean that you could not handle these tasks with Docker alone, as it is capable of doing some of these tasks, but it might require a lot of your manual intervention and scripting.
 
-### What is Kubernetes and What Problems Does it Solve?
+### K8S là gì và các vấn đề mà nó giải quyết được.
 
 Kubernetes is an open-source platform designed to address these challenges. It provides a robust framework to automatically manage your containerized workloads.
 
@@ -253,7 +255,7 @@ In summary, Kubernetes is the control plane for your containers. It shifts your 
 
 But it is important to remember that Kubernetes is a tool, you should always evaluate if it is the right tool for your specific use case, as it might be an overkill for smaller applications or teams.
 
-## Kubernetes architecture: master and node components
+## Kiến trúc của Kubernetes: master và  các node thành phần.
 
 ### Control plane and Worker nodes
 
@@ -263,7 +265,7 @@ But it is important to remember that Kubernetes is a tool, you should always eva
 
 ![img.png](images/cluster_architecture.png)
 
-### Control plane components:
+### Thành phần của control panel:
 
 - `kube-apiserver`
   - exposes the Kubernetes API
@@ -275,7 +277,7 @@ But it is important to remember that Kubernetes is a tool, you should always eva
 - `kube-controller-manager`
   - run controller processes that handle routine tasks in the cluster
 
-### Node components:
+### Thành phần các node:
 
 - `kubelet`
   - ensuring that containers are running in a pod according to PodSpec
@@ -299,15 +301,16 @@ But it is important to remember that Kubernetes is a tool, you should always eva
   - it interacts with the container runtime to start, stop, and manage containers
   - it reports the status of the pods back to the API server
 
-## Installation of Kubernetes (e.g. with Minikube or kubeadm)
+## Cài đặt Kubernetes (e.g. with Minikube or kubeadm)
 
-To work with Kubernetes on your local machine, you'll need more than a single command. The setup involves two main parts: first you need a local Kubernetes cluster (`Minikube`), and second, you need the tools to interact with it (`kubectl`).
+Với môi trường lab thì có thể cài k8s bằng minikube, cần có
+- Máy với OS là ubuntu server 24.04
+- Cài đặt kubectl 
+- Cài đặt minikube. 
 
-This part of the workshop will show you how to install Minikube, which creates a Kubernetes cluster on your machine. You'll also install kubectl, the command-line tool you'll use to manage all your applications and resources on the cluster.
+### Cài đặt kubectl
 
-### Install kubectl
-
-Before installing Kubernetes, it is good to have `kubectl` installed. `kubectl` is the command-line tool for interacting with Kubernetes clusters. So we will use it no matter what Kubernetes installation method we choose.
+kubectl là công cụ ở phía client để tương tác với cụm k8s. 
 
 ```bash
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -347,7 +350,7 @@ k version --client
 
 This should make your life easier and your hands less tired :-)
 
-### Install minikube
+### Cài đặt minikube
 
 Minikube is a tool that makes it easy to run Kubernetes locally. It creates a VM or runs a container on your local machine and deploys a Kubernetes cluster inside it. This is a great way to learn and experiment with Kubernetes without needing a full setup.
 
