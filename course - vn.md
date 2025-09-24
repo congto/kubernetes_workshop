@@ -761,7 +761,7 @@ The `ingress-nginx` controller uses the original `Ingress API`, while `ingate` i
 
 ---
 
-# Hands-on labs: Creating and managing pods and deployments
+# Thực hành lab: Tạo và quản lý các  pod và deployment
 
 
 ## Kubectl
@@ -787,25 +787,22 @@ kubectl [command] [TYPE] [NAME] [flags]
 ```
 
 ```bash
-kubectl get nodes
-kubectl get namespaces
-```
-
-```txt
-NAME           STATUS   ROLES           AGE     VERSION
-minikube       Ready    control-plane   7m17s   v1.33.1
-minikube-m02   Ready    <none>          6m16s   v1.33.1
-minikube-m03   Ready    <none>          4m12s   v1.33.1
-```
-
-```txt
+root@cto-docker-66-106:~# kubectl get nodes
+NAME           STATUS   ROLES           AGE   VERSION
+minikube       Ready    control-plane   81m   v1.34.0
+minikube-m02   Ready    <none>          79m   v1.34.0
+minikube-m03   Ready    <none>          78m   v1.34.0
+root@cto-docker-66-106:~# kubectl get namespaces
 NAME              STATUS   AGE
-cilium-secrets    Active   7m20s
-default           Active   7m25s
-kube-node-lease   Active   7m25s
-kube-public       Active   7m25s
-kube-system       Active   7m25s
+cilium-secrets    Active   81m
+default           Active   81m
+kube-node-lease   Active   81m
+kube-public       Active   81m
+kube-system       Active   81m
+
 ```
+
+Sử dụng lệnh dưới để biết cách dùng các lệnh trên. 
 
 ```bash
 kubectl explain node
@@ -816,7 +813,7 @@ kubectl explain pod
 kubectl explain pod.spec
 ```
 
-## General rules 
+## Các quy ước chung
 
 ### Names
 
