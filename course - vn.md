@@ -829,32 +829,81 @@ kubectl apply -f examples/nginx_pod.yaml
 kubectl apply -f examples/redis_pod.yaml
 ```
 
+Kiểm tra các pod vừa tạo bằng các lệnh `kubectl get pods` hoặc `kubectl get po`
+
 ```bash
-kubectl get pods
-kubectl get po
+root@cto-docker-66-106:~/examples# kubectl get pods
+NAME        READY   STATUS    RESTARTS   AGE
+nginx-pod    1/1     Running   0          5m47s
+redis-pod   1/1     Running   0          2m39s
+
 ```
+
+Kiểm tra chi tiết hơn.
+
 ```bash
 kubectl get pods -o wide
 ```
+
+Kiểm tra pod cụ thể.
 ```bash
-kubectl get pod/nginx
+kubectl get pod/nginx-pod
 ```
+
+Cũng có thể dùng cú pháp này để kiểm tra pod. s
 ```bash
 kubectl get -f examples/nginx_pod.yaml 
 ```
 
-## Accessing the pod
+## Truy cập vào pod
 
+Tới đây, chưa phơi pod ra ngoài nên chưa thể try cập được để kiểm tra xem ứng dụng chạy hay chưa.
+
+Có nhiều các phơi pod ra ngoài, dưới là cách dùng để forward port cho pod. 
+
+Kiểm tra proxy 
 ```bash
 kubectl proxy
 ```
 See: http://localhost:8001/api/v1/namespaces/default/pods/nginx/proxy/
 
-```bash
-kubectl port-forward pod/nginx 8000:80
-```
-See: http://127.0.0.1:8000
+Sử dụng port-forward để phơi ứng dụng nignx ra port 80000
 
+```bash
+kubectl port-forward pod/nginx-pod 8000:80
+```
+
+Sau đó mở màn hình khác máy cài minikube, thử curl tới địa chỉ `curl localhost:8000`, kết quả như bên dưới là ok. 
+
+```
+root@cto-docker-66-106:~# curl localhost:8000
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+root@cto-docker-66-106:~#
+```
+
+Làm tương tự với redis, forward port 6379.
 ```bash
 kubectl port-forward pod/redis 6379:6379
 ```
@@ -866,18 +915,76 @@ redis-cli ping
 ## `describe` - inspect a pod
 
 ```bash
-kubectl describe pod nginx
-kubectl describe pod redis
+kubectl describe pod nginx-pod
+kubectl describe pod redis-pod
 ```
 
-## `exec` - connect (ssh) to a pod
+Kết quả
+```
+root@cto-docker-66-106:~/exampleskubectl describe pod redis-podod
+Name:             redis-pod
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             minikube-m02/192.168.49.3
+Start Time:       Wed, 24 Sep 2025 22:58:18 +0700
+Labels:           <none>
+Annotations:      <none>
+Status:           Running
+IP:               10.244.0.183
+IPs:
+  IP:  10.244.0.183
+Containers:
+  redis-container:
+    Container ID:   docker://ab9af626d4cf6f2060838b26a411c2f3b1436a69e77ec898084b9bb32451403a
+    Image:          redis:latest
+    Image ID:       docker-pullable://redis@sha256:acb90ced0bd769b7c04cb4c32c4494ba7b3e0ee068bdbfff0eeb0d31c2a21078
+    Port:           6379/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Wed, 24 Sep 2025 22:58:54 +0700
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-hd2dr (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-hd2dr:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age    From               Message
+  ----    ------     ----   ----               -------
+  Normal  Scheduled  9m18s  default-scheduler  Successfully assigned default/redis-pod to minikube-m02
+  Normal  Pulling    9m17s  kubelet            Pulling image "redis:latest"
+  Normal  Pulled     8m43s  kubelet            Successfully pulled image "redis:latest" in 33.448s (33.448s including waiting). Image size: 137144525 bytes.
+  Normal  Created    8m42s  kubelet            Created container: redis-container
+  Normal  Started    8m42s  kubelet            Started container redis-container
+
+```
+
+## `exec` - tryu cập vào trong pod
 
 ```bash
 kubectl exec -it nginx -- /bin/bash
 kubectl exec -it redis -- redis-cli  # ping
 ```
 
-## `logs` - inspect logs of a pod
+## `logs` - Kiểm tra log của pod. 
 
 ```bash
 kubectl logs nginx
@@ -885,17 +992,18 @@ kubectl logs pod/nginx
 kubectl logs nginx -f  # --follow=false
 ```
 
-## `delete` - delete a pod
+## `delete` - Xóa pod. 
 
 ```bash
-kubectl delete pod redis  # or -f examples/redis_pod.yaml
+kubectl delete pod redis-pod  # or -f examples/redis_pod.yaml
+kubectl delete pod nginx-pod  # or -f examples/nginx_pod.yaml
 ```
 
 ---
 
 # ReplicaSet
 
-Simple example of a ReplicaSet: [nginx_replicaset.yaml](./examples/nginx_replicaset.yaml)
+Ví dụ về replicaset: [nginx_replicaset.yaml](./examples/nginx_replicaset.yaml)
 
 ```bash
 kubectl apply -f examples/nginx_replicaset.yaml
@@ -903,15 +1011,16 @@ kubectl apply -f examples/nginx_replicaset.yaml
 
 ```bash
 kubectl get replicaset
-kubectl get rs
+
+kubectl get rs # viet tat cua kubectl get replicaset
 ```
 
-Combined output of get for ReplicaSet and Pods:
-
+Sử dụng lệnh dưới để quan sát pod, replicatset 
 ```bash
 kubectl get rs,po
 ```
 
+Kết quả 
 ```text
 NAME    DESIRED   CURRENT   READY   AGE
 nginx   3         3         3       1m
@@ -923,23 +1032,25 @@ pod/nginx-c6dc9   1/1     Running            0          17m
 pod/nginx-gr7tb   1/1     Running            0          17m
 ```
 
-## Replication in action
+## Các hoạt động của replication 
 
-### Maintaining desired state
+### Quản lý trạng thái mong muốn 
 
-Try deleting one of the pods and see how ReplicaSet creates a new one to maintain the desired state.
+Thử xóa pod và quan sát cách Replicaset tạo mới chúng để đảm bảo trạng thái mong muốn đã thiết lập.
+
 
 ```bash
 kubectl delete pod <pod_name>  # in this example nginx-nzvtj
 ```
 
 To observe the ReplicaSet in action, you can run:
+Để quan sát các ReplicaSet hoạt động như nào, bạn có thể chạy:
 
 ```bash
 kubectl get replicaset -w  # -w for watch, also works for pods and other resources
 ```
 
-Then in other terminal, delete one of the pods and see the output.
+Trong một màn hình khác, xóa pod và xem kết quả 
 
 ```text
 NAME    DESIRED   CURRENT   READY   AGE
@@ -957,14 +1068,14 @@ pod/nginx-c6dc9   1/1     Running            0          17m
 pod/nginx-gr7tb   1/1     Running            0          17m
 ```
 
-### Updating desired state
+### Cập nhật trạng thái mong muốn
 
-Update the ReplicaSet to change the number of replicas:
+Cập nhật số ReplicaSet để thay đổi số lượng nhân bản: 
 
 ```yaml
 ...
 spec:
-  replicas: 15  # from 3 to 15
+  replicas: 15  # Thay đổi từ 3 sang 15
 ...
 ```
 

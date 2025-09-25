@@ -1,10 +1,10 @@
 apiVersion: v1
-kind: Pod
+kind: Pod # Tao pod 
 metadata:
-  name: redis
+  name: redis-pod # Ten cua pod 
 spec:
   containers:
-    - name: redis
-      image: redis:latest
+    - name: redis-container # Ten cua container 
+      image: redis:latest # Image ma docker se su dung.
       ports:
         - containerPort: 6379

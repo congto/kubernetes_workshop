@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
-  name: nginx
+  name: nginx-pod
 spec:
-  replicas: 3 # Desired number of Pods
-  selector: # Matches labels on the Pods it should manage
+  replicas: 3 # Số lượng nhân bản.
+  selector: # Gán nhán cho pod để quản lý vì chúng có nhiều pod. 
     matchLabels:
       app: nginx-rs
   template: # This is the Pod template for the ReplicaSet
     metadata:
       labels:
-        app: nginx-rs # Labels for the Pods (must match selector!)
+        app: nginx-rs # Nhãn của các pod (bắt buộc phải trùng với nhãn trong selector!)
     spec:
       containers:
-      - name: nginx
+      - name: nginxcontainer #Tên container.
         image: nginx:1.29.0

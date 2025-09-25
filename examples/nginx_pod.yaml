@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: nginx
+  name: nginx-pod # Ten cua pod
 spec:
   containers:
-    - name: nginx # Name of the container within the Pod
-      image: nginx:1.29.0 # Docker image to use
+    - name: nginx-container # Ten cua container gan voi pod 
+      image: nginx:1.29.0 # Image se su dung de tao container.
