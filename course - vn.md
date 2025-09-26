@@ -1043,11 +1043,10 @@ Thử xóa pod và quan sát cách Replicaset tạo mới chúng để đảm b�
 kubectl delete pod <pod_name>  # in this example nginx-nzvtj
 ```
 
-To observe the ReplicaSet in action, you can run:
 Để quan sát các ReplicaSet hoạt động như nào, bạn có thể chạy:
 
 ```bash
-kubectl get replicaset -w  # -w for watch, also works for pods and other resources
+kubectl get replicaset,pod -w  # -w for watch, also works for pods and other resources
 ```
 
 Trong một màn hình khác, xóa pod và xem kết quả 
@@ -1127,13 +1126,13 @@ nginx-sgx4j   1/1     Running   0          77s
 nginx-zg2xw   1/1     Running   0          77s
 ```
 
-### Cleaning up
+### Xóa replicaset 
 
 ```bash
 kubectl delete replicaset/nginx
 ```
 
-ReplicaSet controller will delete all pods for the given ReplicaSet.
+Bộ điều khiển ReplicaSet sẽ xóa toàn bộ pod trong ReplicaSet
 
 ```text
 NAME    READY   STATUS    RESTARTS   AGE
