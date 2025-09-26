@@ -1147,9 +1147,32 @@ See: [labels.md](additional_resources/labels.md)
 
 # Deployment
 
-Deployment is a higher-level abstraction that manages Pods and ReplicaSets.
+Deployment là trìu tượng mức cao hơn ddeeer quản lý Pod và ReplicaSet.
 
-Simple example of a Deployment: [nginx_deployment.yaml](./examples/nginx_deployment.yaml)
+Ví dụ về Deployment: [nginx_deployment.yaml](./examples/nginx_deployment.yaml)
+
+```
+# nginx_deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx # Name of your Deployment
+  labels:
+    app: nginx-web # Labels for the Deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-web  # Selector for Pods managed by the ReplicaSet created by this Deployment
+  template: # This describes the Pods that the Deployment will create
+    metadata:
+      labels:
+        app: nginx-web # Labels for the Pods (must match selector!)
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.29.0
+```
 
 ```bash
 kubectl apply -f examples/nginx_deployment.yaml
@@ -1157,10 +1180,11 @@ kubectl apply -f examples/nginx_deployment.yaml
 
 ```bash
 kubectl get deployments
-kubectl get deploy
+
+kubectl get deploy # Viet ngan gon cua lenh tren 
 ```
 
-Combined output of get for Deployment, ReplicaSet, and Pods:
+Gom các lệnh để quan sát được Deployment, ReplicaSet, and Pods
 
 ```bash
 kubectl get deploy,rs,po
@@ -1181,15 +1205,14 @@ pod/nginx-cb6645bd8-zsnl2   1/1     Running   0          36s
 
 ## Inspecting a rollout
 
-Let's make a change in the Deployment to downgrade the image version of nginx to `1.28.0`, set value in yaml file: `image: nginx:1.28.0`
+Hãy thay đổi Deployment để hạ cấp phiên bản image của nginx về 1.28 bằng cách thiết lập dòng `image: nginx:1.28.0`
 
-After that apply the change:
+Sau đó thực thi việc thay đổi.
 
 ```bash
 kubectl apply -f examples/nginx_deployment.yaml
 ```
-
-You can check the status of the rollout with:
+Kiểm tra lại trạng thái sau khi thực thi
 ```bash
 kubectl rollout status deployment nginx --watch=true 
 ```
@@ -1224,13 +1247,13 @@ pod/nginx-6b66bfb4f-ptch6   1/1     Running   0          4m38s   10.244.2.25   m
 pod/nginx-6b66bfb4f-s96mv   1/1     Running   0          2m37s   10.244.1.24   minikube-m02      <none>           <none>
 ```
 
-You can see that the new version of Deployment is running with the new image `nginx:1.28.0`. There is a new ReplicaSet `nginx-6b66bfb4f` which is serving current pods, while the old ReplicaSet `nginx-cb6645bd8` is still present but not serving any Pods.
+Bạn sẽ nhìn thấy phiên bản mới của Deployment được chạy với phiên bản `nginx:1.28.0`. Có 2 dòng ReplicaSet, trong đó dòng có image 1.29.0 là image cũ nhưng ko Có bất kỳ pod nào gán với replicatSet này.
 
-Historical ReplicaSets are kept to allow rollbacks and to maintain a history of changes. Number of historical ReplicaSets can be controlled by the `revisionHistoryLimit` field in the Deployment spec. By default, it is set to 10.
+Lịch sử của ReplicatSet được duy trì để cho phép khôi phục và duy trì lịch sử thay đổi. Số lượng bản ghi lịch sử của ReplicaSet có thể thiết lập bởi tham số `revisionHistoryLimit` trong đặc tả của Deployment. Mặc định sẽ là 10.
 
-## Rollback
+## Rollback (khôi phục)
 
-To rollback to the previous version of the Deployment, you can use the following command:
+Để khôi phục về phiên bản trước của Deployment, bạn có thể sử dụng lệnh 
 
 ```bash
 kubectl rollout undo deployment nginx && kubectl rollout status deployment nginx --watch=true
@@ -1270,7 +1293,7 @@ pod/nginx-cb6645bd8-xb27f   1/1     Running   0          42s   10.244.2.26   min
 pod/nginx-cb6645bd8-xqv26   1/1     Running   0          41s   10.244.1.26   minikube-m02      <none>           <none>
 ```
 
-You can see that the Deployment is back to the previous version `nginx:1.29.0`, and the old ReplicaSet `nginx-6b66bfb4f` is no longer serving any Pods.
+Bạn sẽ nhìn thấy Deployment được quay trở lại phiên bản trước đó là 1.29.0 và các Replicate cũ sẽ không có các pod nào (số pod là 0)
 
 ## Rollouts - Declarative vs Imperative intermezzo
 
@@ -1296,6 +1319,23 @@ REVISION  CHANGE-CAUSE
 
 Simple example of a Service: [nginx_service_clusterip.yaml](./examples/nginx_service_clusterip.yaml)
 
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-clusterip-service # Name of your Service
+  labels:
+    app: nginx-web # Label for the Service itself
+spec:
+  selector:
+    app: nginx-web # CRITICAL: This matches the 'app: nginx-web' label on your Pods
+  ports:
+    - protocol: TCP
+      port: 80 # Port của Service 
+      targetPort: 80 # Port của container được listen trong pod 
+  type: ClusterIP # Explicitly setting ClusterIP, though it's the default
+```
+
 ```text
 kubectl apply -f examples/nginx_service_clusterip.yaml
 ```
@@ -1305,12 +1345,13 @@ kubectl get services
 kubectl get svc
 ```
 
-Use `describe` command to inspect details of the service:
+Sử dụng câu lệnh  `describe` để quan sát về Serivce (tương tự như pod).
 ```bash
 kubectl describe service nginx-clusterip-service
 ```
 
-The service is of type `ClusterIP`, which means it is only accessible from within the cluster. `ClusterIP` is the default service type.
+Service có kiểu là `ClusterIP`, có nghĩa là nó chỉ có thể tryu cập được từ cluster. `ClusterIP` là kiểu service mặc định. 
+
 
 ```text
 Name:                     nginx-clusterip-service
@@ -1330,7 +1371,7 @@ Session Affinity:         None
 Internal Traffic Policy:  Cluster
 Events:                   <none>
 ```
-
+Bạn có thể nhìn thấy `ednpoints` là địa chỉ IP của Pod 
 You can see that the endpoints are the IP addresses of the Pods that are selected by the service.
 
 ```text
@@ -1340,20 +1381,19 @@ pod/nginx-cb6645bd8-fqd5q   1/1     Running   2               2d23h   10.244.1.3
 pod/nginx-cb6645bd8-g9gsc   1/1     Running   2 (5h11m ago)   2d23h   10.244.2.2   minikube-m03      <none>           <none>
 ```
 
-## Accessing the service
-
-To access the service from within the cluster, you can use the service name as a DNS name. For example, if you have a Pod that is running in the same namespace, you can use the following command to access the service:
+## Truy cập vào service 
+Để truy cập vào Service từ cluster, bạn có thể sử dụng tên của service. Ví dụ, Nếu bạn có Pod đang chạy trong cùng namespace thì bạn có thể truy cập vào dịch vụ bằng cách sau.
 
 ```bash
 kubectl exec -it <pod_name> -- curl http://nginx-clusterip-service
 ```
 
-or use the proxy:
+hoặc sử dụng proxy 
 
 See: http://127.0.0.1:8001/api/v1/namespaces/default/services/nginx-clusterip-service/proxy/
 (dont forget to start `kubectl proxy`)
 
-## Other service types
+## Các kiểu của Service
 
 ### NodePort
 
@@ -1371,17 +1411,18 @@ See: [loadbalancer_service.md](additional_resources/loadbalancer_service.md)
 
 # Ingress
 
-Before you can use Ingress, you need to have an Ingress Controller running in your cluster. The Ingress Controller is responsible for fulfilling the Ingress rules and routing the traffic to the appropriate Services.
+Trước khi sử dụng Ingress, bạn cần có Ingress Controller trong cluster. Ingress Controller chịu trách nhiệm thực hiện các rule Ingress và điều hướng traffic tới các Service thích hợp. 
 
-You can investigate if the Ingress Controller is present by running:
+Bạn có thể kiểm tra xem có Ingress Controller hay không bằng cách chạy các lệnh sau
 
 ```bash
-kubectl get pods -n ingress-nginx  # -n option is for namespace, it can be different in your cluster
+kubectl get pods -n ingress-nginx  # Tùy chọn -n để chỉ định namespace
 kubectl get deployments -n ingress-nginx
 kubectl get ingressclass
 ```
 
-If there is a running Ingress Controller, you should see something like this:
+Nếu bạn đang chạy một Ingress Controller, bạn sẽ nhìn thấy các thông tin dưới.
+
 
 ```text
 NAME                                        READY   STATUS    RESTARTS   AGE
@@ -1394,20 +1435,21 @@ NAME    CONTROLLER             PARAMETERS   AGE
 nginx   k8s.io/ingress-nginx   <none>       11m
 ```
 
-If you have ingress controller running, you skip the installation section.
+Nếu bạn đã có ingress controller rồi thì có thể bỏ qua bước cài đặt ở dưới.
 
-## Install ingress-nginx controller
+## Cài đặt ingress-nginx controller
 
 See: [ingress-nginx](https://kubernetes.github.io/ingress-nginx/deploy/) installation instructions
 
-### Installation in Minikube
-If you are using Minikube, you can enable the Ingress addon:
+### Cài đặt trong Minikube
+Nếu bạn sử dụng Minikube, bạn có thể kích hoạt addone Ingress:
 
 ```bash
 minikube addons enable ingress
 ```
 
-### Installation in Minikube (lab environment specific)
+### Cài đặt trong  in Minikube (trong môi trường lab)
+
 
 As we are using a multi-node Minikube cluster in our lab environment, we need to do some additional steps. We are using a special taint on the control plane node to prevent normal pods from scheduling there. Unfortunately, the ingress addon is not ready for that, so we need to remove that taint for a moment so that the ingress controller can be scheduled on the control plane node. In case you are working with different setup, you can skip this step.
 
@@ -1433,7 +1475,7 @@ There is additional step which is needed if you are using workshop labs. Because
 kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec": {"externalIPs": ["192.168.49.2"], "externalTrafficPolicy": ""}}'
 ```
 
-### Installation using Helm:
+### Cài đặt bằng cách sử dụng Helm:
 
 ```bash
 helm upgrade --install ingress-nginx ingress-nginx \
