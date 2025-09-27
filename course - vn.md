@@ -1483,13 +1483,15 @@ helm upgrade --install ingress-nginx ingress-nginx \
   --namespace ingress-nginx --create-namespace
 ```
 
-### Installation using kubectl:
+### Cài đặt bằng cách sử dụng kubectl:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.13.0/deploy/static/provider/cloud/deploy.yaml
 ```
 
-### Other methods
+### Phương thức khác
+
+Bạn có thể cài đặt ingress-nginx bằng cách chỉ ra cụ thể addon trong các công cụ Minikube hoặc Microk8s vì chúng có sẵn.
 
 You can also get ingress-nginx controller by installing specific addons (e.g. for minikube or MicroK8s) or they can be provided by your cloud provider.
 
